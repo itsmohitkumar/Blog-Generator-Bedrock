@@ -2,11 +2,14 @@
 
 ## Overview
 
-This project is an AWS Lambda function that leverages the `meta.llama3-8b-instruct-v1:0` model from AWS Bedrock to generate blog content based on user-defined topics. The generated content is then saved to an Amazon S3 bucket for easy access and management.
+This project is an AWS Lambda function that leverages the `meta.llama3-8b-instruct-v1:0` model from AWS Bedrock to generate blog content based on user-defined topics. The generated content is then saved to an Amazon S3 bucket for easy access and management. The function supports customizable blog lengths, keyword inclusion for SEO, and generates metadata for each blog post.
 
 ## Features
 
 - **Blog Generation**: Generate high-quality blog posts on various topics.
+- **Customizable Lengths**: Users can specify the desired length of the blog post (e.g., 200 words, 500 words).
+- **SEO Optimization**: Include keywords in the blog for better search engine visibility.
+- **Metadata Tracking**: Automatically saves metadata such as blog topic, generation timestamp, and summary.
 - **AWS Integration**: Seamlessly integrates with AWS Bedrock for model invocation and S3 for storage.
 - **Logging**: Provides comprehensive logging for debugging and monitoring.
 
@@ -65,7 +68,7 @@ The Lambda function expects an event in the following JSON format:
 
 ```json
 {
-    "body": "{\"blog_topic\": \"Your Blog Topic Here\"}"
+    "body": "{\"blog_topic\": \"Your Blog Topic Here\", \"blog_length\": 200, \"keywords\": [\"keyword1\", \"keyword2\"]}"
 }
 ```
 
@@ -75,7 +78,7 @@ Here’s an example of how to structure your event for testing:
 
 ```json
 {
-    "body": "{\"blog_topic\": \"The Future of Artificial Intelligence\"}"
+    "body": "{\"blog_topic\": \"The Future of Artificial Intelligence\", \"blog_length\": 300, \"keywords\": [\"AI\", \"technology\"]}"
 }
 ```
 
