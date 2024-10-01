@@ -23,8 +23,8 @@ Follow these steps to set up the project locally:
 1. **Clone the Repository**:
 
    ```bash
-   git clone <repository-url>
-   cd <repository-directory>
+   git clone https://github.com/itsmohitkumar/blog-generation-bedrock
+   cd blog-generation-bedrock
    ```
 
 2. **Create a Virtual Environment (optional but recommended)**:
