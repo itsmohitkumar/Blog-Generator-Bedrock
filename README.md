@@ -1,100 +1,118 @@
-# AWS Lambda: Install and Package boto3
-
-This guide explains how to install `boto3` and package it into a zip file suitable for uploading to AWS Lambda.
-
-## Table of Contents
-- [Overview](#overview)
-- [Requirements](#requirements)
-- [Installation Steps](#installation-steps)
-- [Creating the Zip File](#creating-the-zip-file)
-- [Uploading to AWS Lambda](#uploading-to-aws-lambda)
-- [Cleaning Up](#cleaning-up)
+# Blog Generation with AWS Bedrock
 
 ## Overview
 
-AWS Lambda does not include the latest version of `boto3` by default. This guide will help you install `boto3` and its dependencies locally, package them in a zip file, and upload the package to Lambda to ensure your function uses the latest `boto3` version.
+This project is an AWS Lambda function that leverages the `meta.llama3-8b-instruct-v1:0` model from AWS Bedrock to generate blog content based on user-defined topics. The generated content is then saved to an Amazon S3 bucket for easy access and management.
+
+## Features
+
+- **Blog Generation**: Generate high-quality blog posts on various topics.
+- **AWS Integration**: Seamlessly integrates with AWS Bedrock for model invocation and S3 for storage.
+- **Logging**: Provides comprehensive logging for debugging and monitoring.
 
 ## Requirements
 
-Make sure you have the following installed on your machine:
-- Python (version 3.x)
-- Pip (Python package manager)
+- **AWS Account**: You must have an active AWS account with access to AWS Bedrock and S3.
+- **IAM Role**: Ensure you have an IAM role with the necessary permissions to invoke Bedrock models and access S3.
+- **Python Version**: The code is compatible with Python 3.x.
 
-## Installation Steps
+## Installation
 
-1. **Create a Directory for the Lambda Layer**
-   
-   To install `boto3` in a format that is compatible with AWS Lambda, we will install it in a folder named `python/`.
+Follow these steps to set up the project locally:
 
-   Run the following command to install `boto3` into the `python/` directory:
+1. **Clone the Repository**:
 
    ```bash
-   pip install boto3 -t python/
+   git clone <repository-url>
+   cd <repository-directory>
    ```
 
-2. **Verify Installation**
-
-   After running the above command, the `python/` directory will contain all `boto3` files and its dependencies. You can check the contents of the directory to ensure everything is installed correctly:
+2. **Create a Virtual Environment (optional but recommended)**:
 
    ```bash
-   ls python/
+   python -m venv venv
+   source venv/bin/activate  # For Windows use `venv\Scripts\activate`
    ```
 
-## Creating the Zip File
+3. **Install Required Packages**:
 
-Once `boto3` is installed, we need to package the contents of the `python/` folder into a zip file that can be uploaded to AWS Lambda.
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Run the following Python script to automate this process:
+## Configuration
 
-```python
-import os
-import zipfile
-import shutil
+### Environment Variables
 
-# Zip file name
-zip_file_name = 'boto3_lambda_package.zip'
+Before running the Lambda function, set the following environment variables:
 
-# Create the zip file with the contents of the 'python' directory
-with zipfile.ZipFile(zip_file_name, 'w') as lambda_zip:
-    for folder_name, subfolders, filenames in os.walk('python'):
-        for filename in filenames:
-            file_path = os.path.join(folder_name, filename)
-            lambda_zip.write(file_path, os.path.relpath(file_path, 'python'))
+- **`AWS_REGION`**: The AWS region where your services are located (default: `us-east-1`).
+- **`MODEL_ID`**: The ID of the Bedrock model to use for blog generation (default: `meta.llama3-8b-instruct-v1:0`).
+- **`S3_BUCKET`**: The name of the S3 bucket where the generated blog content will be stored (default: `blog-generation-s3bucket`).
 
-# Clean up by removing the 'python' directory
-shutil.rmtree('python')
+### IAM Permissions
 
-print(f"{zip_file_name} created successfully.")
+Make sure your Lambda function has the following IAM permissions:
+
+- **`bedrock:InvokeModel`**: Required to invoke the Bedrock model.
+- **`s3:PutObject`**: Required to save objects to the specified S3 bucket.
+
+## Usage
+
+### Event Format
+
+The Lambda function expects an event in the following JSON format:
+
+```json
+{
+    "body": "{\"blog_topic\": \"Your Blog Topic Here\"}"
+}
 ```
 
-This will create a zip file named `boto3_lambda_package.zip`.
+### Example Event
 
-## Uploading to AWS Lambda
+Here’s an example of how to structure your event for testing:
 
-To update your Lambda function with the latest version of `boto3`:
-
-1. Log in to the [AWS Management Console](https://aws.amazon.com/console/).
-2. Navigate to **AWS Lambda**.
-3. Choose your Lambda function.
-4. Under the **Code** section, click **Upload** and select the `boto3_lambda_package.zip` file you created.
-5. Save the changes.
-
-Once the upload is complete, your Lambda function will have access to the latest `boto3` package.
-
-## Cleaning Up
-
-After uploading the zip file, you may want to delete the local `python/` directory to clean up your working environment.
-
-If you haven’t already, the script provided in the previous step will automatically remove the `python/` directory after creating the zip file.
-
-You can manually remove the directory by running:
-
-```bash
-rm -rf python/
+```json
+{
+    "body": "{\"blog_topic\": \"The Future of Artificial Intelligence\"}"
+}
 ```
+
+## Deployment
+
+You can deploy the Lambda function using the AWS Management Console or the AWS CLI. Ensure that the correct environment variables are configured in the Lambda settings.
+
+### Deploying with AWS CLI
+
+1. Package your application:
+
+   ```bash
+   zip -r function.zip .  # Assumes you are in the root of your project directory
+   ```
+
+2. Create or update the Lambda function:
+
+   ```bash
+   aws lambda create-function --function-name BlogGenerationFunction \
+     --zip-file fileb://function.zip --handler <your_handler_file>.lambda_handler \
+     --runtime python3.x --role <your_execution_role_arn> \
+     --environment AWS_REGION=us-east-1,MODEL_ID=meta.llama3-8b-instruct-v1:0,S3_BUCKET=blog-generation-s3bucket
+   ```
+
+## Logging
+
+The Lambda function logs key events and errors. You can view the logs in **Amazon CloudWatch Logs** for monitoring and debugging purposes.
+
+## Contributing
+
+Contributions are welcome! If you have suggestions or improvements, please open an issue or submit a pull request.
 
 ## License
 
-This project is licensed under the MIT License. You are free to use, modify, and distribute this project as per the terms of the license.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-For more details, refer to the LICENSE file.
+## Acknowledgements
+
+- [AWS Documentation](https://docs.aws.amazon.com/)
+- [Boto3 Documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html)

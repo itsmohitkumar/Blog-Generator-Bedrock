@@ -1,95 +1,98 @@
 import boto3
 import botocore.config
 import json
+import os
+import logging
 from datetime import datetime
 
-def quote_generate_using_bedrock(topic: str) -> str:
-    """Generates a quote using Bedrock."""
-    
-    prompt = f"""<s>[INST]Human: Provide a motivational quote on the topic "{topic}".
-    Assistant:[/INST]
-    """
-    
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+
+# Constants (use environment variables or hardcode for now)
+REGION_NAME = os.getenv("AWS_REGION", "us-east-1")
+MODEL_ID = os.getenv("MODEL_ID", "meta.llama3-8b-instruct-v1:0")  # Updated model ID
+S3_BUCKET = os.getenv("S3_BUCKET", "blog-generation-s3bucket")
+
+# Boto3 clients
+bedrock_client = boto3.client("bedrock-runtime", region_name=REGION_NAME,
+                              config=botocore.config.Config(read_timeout=300, retries={'max_attempts': 3}))
+s3_client = boto3.client('s3')
+
+def blog_generate_using_bedrock(blog_topic):
+    """Generate a blog using AWS Bedrock."""
+    prompt = f"<s>[INST]Human: Write a 200-word blog on the topic: {blog_topic}\nAssistant:[/INST]"
+
     body = {
         "prompt": prompt,
-        "max_gen_len": 128,  # Reduced length since quotes are shorter
-        "temperature": 0.7,  # Slightly increased for more creative outputs
+        "max_gen_len": 512,
+        "temperature": 0.5,
         "top_p": 0.9
     }
 
-    try:
-        bedrock = boto3.client(
-            "bedrock-runtime", 
-            region_name="us-east-1",
-            config=botocore.config.Config(
-                read_timeout=300, 
-                retries={'max_attempts': 3}
-            )
-        )
-        response = bedrock.invoke_model(
-            body=json.dumps(body), 
-            modelId="meta.llama2-13b-chat-v1"
-        )
-
-        response_content = response.get('body').read()
-        response_data = json.loads(response_content)
-        quote = response_data.get('generation', '')
-        
-        if quote:
-            return quote
-        else:
-            raise ValueError("No quote content in the response.")
-    
-    except Exception as e:
-        print(f"Error generating the quote: {e}")
-        return ""
-
-def save_quote_to_s3(s3_key: str, s3_bucket: str, quote: str) -> None:
-    """Saves the generated quote to an S3 bucket."""
-    
-    s3 = boto3.client('s3')
+    logger.info(f"Invoking model with ID: {MODEL_ID}")
+    logger.info(f"Request body: {json.dumps(body)}")
 
     try:
-        s3.put_object(Bucket=s3_bucket, Key=s3_key, Body=quote)
-        print("Quote saved to S3 successfully.")
-    
+        response = bedrock_client.invoke_model(
+            modelId=MODEL_ID,
+            contentType='application/json',  # Set content type
+            accept='application/json',        # Set accept type
+            body=json.dumps(body)             # Convert body to JSON string
+        )
+
+        response_body = response['body'].read().decode('utf-8')
+        response_json = json.loads(response_body)
+        return response_json.get('generation', '')
+
     except Exception as e:
-        print(f"Error saving the quote to S3: {e}")
+        logger.error(f"Error generating the blog: {e}")
+        raise
+
+def save_blog_details_s3(s3_key: str, blog_content: str) -> None:
+    """Save the generated blog content to S3."""
+    try:
+        s3_client.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=blog_content)
+        logger.info(f"Blog content saved to S3 at {s3_key}")
+
+    except Exception as e:
+        logger.error(f"Error when saving the blog to S3: {e}")
+        raise
 
 def lambda_handler(event, context):
-    """AWS Lambda handler to generate a quote and save it to S3."""
-    
+    """Lambda function to handle blog generation and S3 upload."""
     try:
-        event_data = json.loads(event['body'])
-        topic = event_data['topic']  # Changed key to reflect quote topic
-        
-        generated_quote = quote_generate_using_bedrock(topic=topic)
+        # Log the incoming event to inspect the structure
+        logger.info(f"Received event: {event}")
 
-        if generated_quote:
-            current_time = datetime.now().strftime('%H%M%S')
-            s3_key = f"quote-output/{current_time}.txt"
-            s3_bucket = 'aws_bedrock_course1'
-            
-            save_quote_to_s3(s3_key, s3_bucket, generated_quote)
+        # Check if the 'body' key exists in the event
+        if 'body' not in event:
+            raise ValueError("'body' key missing in event")
+
+        event_body = json.loads(event['body'])
+        blog_topic = event_body.get('blog_topic')
         
+        if not blog_topic:
+            raise ValueError("Blog topic is required.")
+
+        generated_blog = blog_generate_using_bedrock(blog_topic)
+
+        if generated_blog:
+            current_time = datetime.now().strftime('%Y%m%d%H%M%S')
+            s3_key = f"blog-output/{current_time}.txt"
+            save_blog_details_s3(s3_key, generated_blog)
+            response_body = "Blog generation and upload completed successfully."
         else:
-            print("No quote was generated.")
-        
+            response_body = "Blog generation failed."
+
         return {
             'statusCode': 200,
-            'body': json.dumps('Quote generation completed successfully.')
+            'body': json.dumps(response_body)
         }
 
-    except KeyError as e:
-        print(f"Key error: {e}")
-        return {
-            'statusCode': 400,
-            'body': json.dumps(f"Invalid input data: {e}")
-        }
-    
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        logger.error(f"Error in Lambda handler: {e}")
         return {
             'statusCode': 500,
-            'body': json.dumps('An error occurred during quote generation.')
+            'body': json.dumps(f"Internal server error: {e}")
         }
