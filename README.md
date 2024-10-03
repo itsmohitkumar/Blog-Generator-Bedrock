@@ -68,25 +68,25 @@ To deploy the Lambda function and expose it as an API, we use **AWS API Gateway*
 
 ### Step 1: API Gateway Overview
 
-![API Gateway Overview](./images/API-GATEWAY.png)
+![API Gateway Overview](images/API- GATEWAY.png)
 
 Amazon API Gateway is a fully managed service that makes it easy to create, publish, and manage APIs at any scale. You can set up API Gateway as the "front door" to your application, ensuring that it interacts with AWS services such as Lambda and S3.
 
 ### Step 2: API Type Selection
 
-![API Type Selection](./images/API-GATEWAY-1.png)
+![API Type Selection](images/API- GATEWAY-1.png)
 
 Here, you can choose between creating a **REST API** or a **WebSocket API**. REST APIs are ideal for low-latency and cost-effective HTTP API solutions.
 
 ### Step 3: API Creation Success
 
-![API Creation Success](./images/API-GATEWAY-2.png)
+![API Creation Success](images/API- GATEWAY-2.png)
 
 Once the API is created successfully, you can start creating routes that define how incoming requests are processed. For this project, we created an API named `bedrock-chatbot-api`.
 
 ### Step 4: Creating Routes and Methods
 
-![Creating Routes](./images/API-GATEWAY-3.png)
+![Creating Routes](images/API- GATEWAY-3.png)
 
 Define routes and methods for your API. In this example, routes like `/pets` are created for API calls. You can choose HTTP methods such as `GET`, `POST`, or `DELETE`.
 
