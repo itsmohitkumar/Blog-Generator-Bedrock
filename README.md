@@ -66,7 +66,7 @@ To deploy the Lambda function and expose it as an API, we use **AWS API Gateway*
 
 ### Step 1: API Gateway Overview
 
-![API Gateway Overview](images/API-GATEWAY-1.png)
+![API Gateway Overview](images/API-GATEWAY.png)
 
 Amazon API Gateway is a fully managed service that makes it easy to create, publish, and manage APIs at any scale. You can set up API Gateway as the "front door" to your application, ensuring that it interacts with AWS services such as Lambda and S3.
 
