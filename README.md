@@ -6,6 +6,8 @@
 
 This project is an AWS Lambda function that leverages the `meta.llama3-8b-instruct-v1:0` model from AWS Bedrock to generate blog content based on user-defined topics. The generated content is then saved to an Amazon S3 bucket for easy access and management. The function supports customizable blog lengths, keyword inclusion for SEO, and generates metadata for each blog post.
 
+![AWS-BEDROCK-META](images/AWS-BEDROCK-META.png)
+
 ## Features
 
 - **Blog Generation**: Generate high-quality blog posts on various topics.
