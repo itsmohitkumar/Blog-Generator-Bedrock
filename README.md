@@ -1,4 +1,4 @@
-# Blog Generation with AWS Bedrock
+# Serverless Blog Creation with AWS Bedrock, Lambda, S3 & API Gateway
 
 ![Main](images/MAIN.png)
 
