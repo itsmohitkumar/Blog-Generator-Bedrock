@@ -1,12 +1,10 @@
 # Serverless Blog Creation with AWS Bedrock, Lambda, S3 & API Gateway
 
-![Main](images/MAIN.png)
-
 ## Overview
 
 This project is an AWS Lambda function that leverages the `meta.llama3-8b-instruct-v1:0` model from AWS Bedrock to generate blog content based on user-defined topics. The generated content is then saved to an Amazon S3 bucket for easy access and management. The function supports customizable blog lengths, keyword inclusion for SEO, and generates metadata for each blog post.
 
-![AWS-BEDROCK-META](images/AWS-BEDROCK-META.png)
+![Main](images/MAIN.png)
 
 ## Features
 
@@ -56,6 +54,103 @@ Before running the Lambda function, set the following environment variables:
 - **`AWS_REGION`**: The AWS region where your services are located (default: `us-east-1`).
 - **`MODEL_ID`**: The ID of the Bedrock model to use for blog generation (default: `meta.llama3-8b-instruct-v1:0`).
 - **`S3_BUCKET`**: The name of the S3 bucket where the generated blog content will be stored (default: `blog-generation-s3bucket`).
+
+## Amazon S3 Bucket Setup
+
+Amazon S3 is a scalable object storage service that allows you to store and retrieve any amount of data at any time. Below are the steps to set up an S3 bucket and configure its properties.
+
+### Step 1: Accessing S3 and Creating a Bucket
+
+![S3 Bucket Creation](./images/AWS-S3-BUCKET-1.png)
+
+Navigate to the **Amazon S3** service from the AWS Management Console. Buckets in S3 are used to store objects, and they act as containers for your data.
+
+- To create a new bucket, click **Create bucket**.
+- You will see a list of existing buckets, if any, under your account. For example, the bucket `blog-generation-s3bucket` is shown in the image above.
+- Each bucket is region-specific, and in this case, the bucket is located in the **US East (N. Virginia)** region.
+
+### Step 2: Configuring the S3 Bucket
+
+![S3 Bucket Configuration](./images/AWS-S3-BUCKET-2.png)
+
+When creating a new S3 bucket, you'll need to configure its settings:
+
+- **Bucket Type:** Choose between general-purpose and directory buckets. General-purpose buckets are recommended for most use cases and allow for a mix of storage classes.
+- **Bucket Name:** Enter a globally unique name for your bucket. For example, `blog-generation-s3bucket` is the name used in this setup.
+- **Object Ownership:** You can choose to disable Access Control Lists (ACLs) for the bucket, meaning all objects are owned by the bucket's AWS account, and access is controlled via policies.
+
+### Step 3: Adding Tags and Enabling Encryption
+
+![S3 Bucket Tags and Encryption](./images/AWS-S3-BUCKET-3.png)
+
+After the initial configuration, you can add additional properties to your bucket:
+
+- **Tags (Optional):** Tags can help organize and track storage costs by assigning metadata to your bucket.
+- **Encryption:** Server-side encryption is automatically applied to all objects stored in the bucket. You can choose between:
+  - **SSE-S3 (Amazon S3 Managed Keys)**
+  - **SSE-KMS (AWS Key Management Service Keys)**
+  - **DSSE-KMS (Dual-layer encryption with AWS KMS)**
+
+### Step 4: Uploading Objects to the Bucket
+
+![S3 Object Management](./images/AWS-S3-BUCKET-4.png)
+
+Once the bucket is created, you can start uploading objects:
+
+- In the **Objects** tab, you will see a list of files and folders stored in the bucket. For example, the folder `blog-output/` is present in the `blog-generation-s3bucket`.
+- You can upload files and create folders using the **Actions** menu.
+- Each object stored in S3 has a unique S3 URI and URL that you can copy for reference or downloading.
+
+## Amazon Bedrock Setup
+
+Amazon Bedrock is a fully managed service that provides access to foundation models (FMs) from leading AI startups and Amazon, allowing you to build and scale generative AI applications without managing any infrastructure. Below are the steps to get started with Amazon Bedrock:
+
+### Step 1: Overview of Amazon Bedrock
+
+![Amazon Bedrock Overview](./images/AWS-BEDROCK-1.png)
+
+Navigate to the **Amazon Bedrock** service on AWS. Amazon Bedrock offers a fully managed environment that enables you to access foundation models via an API. Some key benefits include:
+
+- **Scalability:** Quickly scale generative AI applications using foundation models without managing infrastructure.
+- **Variety of Models:** Choose from a wide range of models from providers like Anthropic, Stability AI, and Amazon, ensuring you select the model that fits your specific use case.
+- **Serverless Experience:** Bedrock’s serverless model allows you to customize FMs with your own data and easily integrate them into your applications using familiar AWS tools.
+
+Click **Get started** to begin setting up your environment.
+
+### Step 2: Choosing a Foundation Model
+
+![Foundation Model Selection](./images/AWS-BEDROCK-2.png)
+
+After accessing Amazon Bedrock, you will need to select a foundation model. The platform offers multiple models for different use cases:
+
+- **Meta Llama 3:** This model is designed for content creation, conversational AI, language understanding, and research & development.
+- **Model Variants:** Llama 3 models are available in various configurations, including 70B and 8B parameter sizes. These are optimized for different tasks such as text summarization, sentiment analysis, code generation, and more.
+
+Once you have selected the model best suited for your use case, you can further customize it or use it as-is.
+
+### Step 3: Model Details and Customization
+
+![Model Customization](./images/AWS-BEDROCK-META.png)
+
+Each model comes with specific attributes and customization options. For example:
+
+- **Llama 3 Model Attributes:** This model supports tasks such as language modeling, dialog systems, and code generation.
+- **Max Tokens:** Some models have a max token limit (e.g., 8K tokens for Llama 3).
+- **Custom Models:** You can also create custom models or import models from external sources to fit your specific needs.
+
+You can experiment with the models directly in the **Playgrounds** section or by using the provided **API**.
+
+### Step 4: Model Usage and Deployment
+
+Amazon Bedrock provides built-in support for deploying models securely and at scale using AWS services. Use familiar AWS tools like **Lambda** and **API Gateway** to integrate the models into your applications, allowing for seamless deployment.
+
+Additionally, Bedrock offers features such as **provisioned throughput**, **cross-region inference**, and **batch inference**, making it easier to optimize performance based on your workload.
+
+### Step 5: Accessing Model APIs and Pricing Information
+
+After configuring your model, you can access the **API Request** options from the Bedrock console to test and deploy it. Additionally, ensure that you review the pricing details for the selected model to understand the costs associated with using Bedrock in your environment.
+
+---
 
 ### IAM Permissions
 
@@ -141,6 +236,7 @@ To create a Lambda function, go to the AWS Lambda console and select **Create fu
 - **Use a blueprint:** Use predefined templates for common use cases.
 
 **Basic Information:**
+
 - **Function Name:** Enter a descriptive name for your function (e.g., `blog-generation-bedrock`).
 - **Runtime:** Choose a programming language; for this project, select **Python 3.10**.
 - **Architecture:** Select the desired architecture, either `x86_64` or `arm64`.
@@ -152,6 +248,7 @@ To create a Lambda function, go to the AWS Lambda console and select **Create fu
 Creating Lambda layers allows for better code management and sharing of libraries. Go to the **Layers** section within the Lambda console and select **Create layer**. 
 
 **Layer Creation:**
+
 - **Name:** Choose a name for the layer (e.g., `boto3-layer`).
 - **Description:** Provide a brief description of the layer's purpose.
 - **Upload a .zip file:** Upload a ZIP file containing the necessary libraries.
@@ -185,6 +282,7 @@ Once your layer is created, go back to your Lambda function configuration. In th
 ![Lambda Environment Configuration](images/AWS-LAMBDA-LAYER-2.png)
 
 Configure environment variables such as:
+
 - `AWS_REGION`
 - `MODEL_ID`
 - `S3_BUCKET`
